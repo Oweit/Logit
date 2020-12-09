@@ -1,5 +1,5 @@
 package com.oweit.logit
 
-class LoginDetails {
-    constructor(username: String, password: String)
+class LoginDetails(val username: String, val password: String) {
+
 }
