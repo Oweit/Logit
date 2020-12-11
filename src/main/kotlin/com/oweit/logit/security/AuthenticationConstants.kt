@@ -6,5 +6,7 @@ class AuthenticationConstants {
         val SECRET: String = "secret"
         val ISSUER: String = "Logit"
         val EXPIRENCY_LENGTH: Long = 2592000000 // one month
+        val PROGRAMMABLE_TOKEN_TYPE: String = "API_TOKEN"
+        val USER_TYPE: String = "USER_TOKEN"
     }
 }

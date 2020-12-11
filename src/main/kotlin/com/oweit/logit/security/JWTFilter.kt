@@ -33,18 +33,19 @@ class JWTFilter : Filter {
         val token: String = req.getHeader(AuthenticationConstants.HEADER_STRING).split(" ")[1]
         val algorithm: Algorithm = Algorithm.HMAC256(AuthenticationConstants.SECRET)
 
-        var userName: String? = null
+        var userId: String? = null
         try {
             val verifier: JWTVerifier = JWT.require(algorithm).withIssuer(AuthenticationConstants.ISSUER).build()
             val decoded: DecodedJWT = verifier.verify(token)
-            userName = decoded.claims["username"]!!.asString()
-            if (userName == null) {
+            val type = decoded.claims["type"]!!.asString()
+            userId = decoded.claims["userId"]!!.asString()
+            if (userId == null || type != AuthenticationConstants.USER_TYPE) {
                 return chain.doFilter(request, response)
             }
         } catch (e: Exception) {
             return chain.doFilter(request, response)
         }
-        val currentUser: UserObject = UserObject.getUserByUserName(userName) ?: return chain.doFilter(request, response)
+        val currentUser: UserObject = UserObject.getUserByUserId(userId) ?: return chain.doFilter(request, response)
         var authentication: UsernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken(currentUser.userName, null, ArrayList())
         SecurityContextHolder.getContext().setAuthentication(authentication);
         chain.doFilter(request, response)
