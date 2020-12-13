@@ -8,6 +8,10 @@ import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.interfaces.DecodedJWT
 import com.oweit.logit.database.UserObject
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.CredentialsContainer
+import org.springframework.security.core.authority.GrantedAuthoritiesContainer
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper
 import org.springframework.security.core.context.SecurityContextHolder
 import javax.servlet.http.HttpServletRequest
 
@@ -46,7 +50,8 @@ class JWTFilter : Filter {
             return chain.doFilter(request, response)
         }
         val currentUser: UserObject = UserObject.getUserByUserId(userId) ?: return chain.doFilter(request, response)
-        var authentication: UsernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken(currentUser.userName, null, ArrayList())
+        val authorities: Collection<SimpleGrantedAuthority> = arrayListOf(SimpleGrantedAuthority(AuthenticationConstants.USER_TYPE))
+        var authentication: UsernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken(currentUser.userName, null, authorities)
         SecurityContextHolder.getContext().setAuthentication(authentication);
         chain.doFilter(request, response)
     }

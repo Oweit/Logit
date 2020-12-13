@@ -18,6 +18,9 @@ class Security : WebSecurityConfigurerAdapter() {
         http.csrf().disable().httpBasic().disable().logout().disable()
             .authorizeRequests().antMatchers("/auth/token").permitAll()
             .and()
+            .authorizeRequests().antMatchers("/log").hasRole(AuthenticationConstants.PROGRAMMABLE_TOKEN_TYPE)
+            .and()
+            .authorizeRequests().antMatchers("/api").hasRole(AuthenticationConstants.USER_TYPE).and()
             .authorizeRequests()
             .anyRequest().authenticated()
 

@@ -20,7 +20,7 @@ import javax.validation.Valid
 import kotlin.collections.HashMap
 
 @RestController
-@RequestMapping("/apitoken")
+@RequestMapping("/api/token")
 class AccessTokenControl {
 
     @Autowired
