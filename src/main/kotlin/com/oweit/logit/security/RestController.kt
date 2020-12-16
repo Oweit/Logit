@@ -26,11 +26,12 @@ class RestController {
 
     @GetMapping("/")
     fun getHome(): String {
+
         val user: UserObject? = AuthenticationWrapper.getUser()
         return "This is home"
     }
 
-    @GetMapping("/token")
+    @PostMapping("/token")
     fun login(@RequestBody loginDetails: LoginDetails): String {
 
         val userData: HashMap<String, Any> = HashMap()

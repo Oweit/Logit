@@ -8,10 +8,7 @@ import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.interfaces.DecodedJWT
 import com.oweit.logit.database.UserObject
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.CredentialsContainer
-import org.springframework.security.core.authority.GrantedAuthoritiesContainer
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper
 import org.springframework.security.core.context.SecurityContextHolder
 import javax.servlet.http.HttpServletRequest
 
@@ -34,26 +31,54 @@ class JWTFilter : Filter {
         if (req.getHeader(AuthenticationConstants.HEADER_STRING) == null) {
             return chain.doFilter(request, response)
         }
-        val token: String = req.getHeader(AuthenticationConstants.HEADER_STRING).split(" ")[1]
+        val splitter: List<String> = req.getHeader(AuthenticationConstants.HEADER_STRING).split(" ")
+        val type: String = splitter[0]
+        val token: String = splitter[1]
         val algorithm: Algorithm = Algorithm.HMAC256(AuthenticationConstants.SECRET)
-
-        var userId: String? = null
-        try {
-            val verifier: JWTVerifier = JWT.require(algorithm).withIssuer(AuthenticationConstants.ISSUER).build()
-            val decoded: DecodedJWT = verifier.verify(token)
-            val type = decoded.claims["type"]!!.asString()
-            userId = decoded.claims["userId"]!!.asString()
-            if (userId == null || type != AuthenticationConstants.USER_TYPE) {
+        val verifier: JWTVerifier = JWT.require(algorithm).withIssuer(AuthenticationConstants.ISSUER).build()
+        val decoded: DecodedJWT = verifier.verify(token)
+        println("token")
+        if (type == AuthenticationConstants.USER_TYPE_BEARER) {
+            println("Found user token")
+            var userId: String? = null
+            try {
+                val type = decoded.claims["type"]!!.asString()
+                userId = decoded.claims["userId"]!!.asString()
+                if (userId == null || type != AuthenticationConstants.USER_TYPE) {
+                    return chain.doFilter(request, response)
+                }
+            } catch (e: Exception) {
                 return chain.doFilter(request, response)
             }
-        } catch (e: Exception) {
-            return chain.doFilter(request, response)
+            val currentUser: UserObject = UserObject.getUserByUserId(userId) ?: return chain.doFilter(request, response)
+            val authorities: Collection<SimpleGrantedAuthority> =
+                arrayListOf(SimpleGrantedAuthority(AuthenticationConstants.USER_TYPE))
+            var authentication: UsernamePasswordAuthenticationToken =
+                UsernamePasswordAuthenticationToken(currentUser.id, null, authorities)
+            SecurityContextHolder.getContext().authentication = authentication;
+        } else if (type == AuthenticationConstants.PROGRAMMABLE_TOKEN_TYPE_BEARER) {
+            println("matched")
+            var streamId: String? = null
+            try {
+                val type = decoded.claims["type"]!!.asString()
+                streamId = decoded.claims["tokenId"]!!.asString()
+                if (streamId == null || type != AuthenticationConstants.PROGRAMMABLE_TOKEN_TYPE) {
+                    return chain.doFilter(request, response)
+                }
+            } catch (e: Exception) {
+                println(e)
+                return chain.doFilter(request, response)
+            }
+            val authorities: Collection<SimpleGrantedAuthority> =
+                arrayListOf(SimpleGrantedAuthority(AuthenticationConstants.PROGRAMMABLE_TOKEN_TYPE))
+            var authentication: UsernamePasswordAuthenticationToken =
+                UsernamePasswordAuthenticationToken(streamId, null, authorities)
+            SecurityContextHolder.getContext().authentication = authentication;
+        } else {
+            println("Didnt match")
         }
-        val currentUser: UserObject = UserObject.getUserByUserId(userId) ?: return chain.doFilter(request, response)
-        val authorities: Collection<SimpleGrantedAuthority> = arrayListOf(SimpleGrantedAuthority(AuthenticationConstants.USER_TYPE))
-        var authentication: UsernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken(currentUser.userName, null, authorities)
-        SecurityContextHolder.getContext().setAuthentication(authentication);
         chain.doFilter(request, response)
+
     }
 
     override fun destroy() {

@@ -8,5 +8,7 @@ class AuthenticationConstants {
         val EXPIRENCY_LENGTH: Long = 2592000000 // one month
         val PROGRAMMABLE_TOKEN_TYPE: String = "API_TOKEN"
         val USER_TYPE: String = "USER_TOKEN"
+        val USER_TYPE_BEARER: String = "Bearer"
+        val PROGRAMMABLE_TOKEN_TYPE_BEARER: String = "APIKEY"
     }
 }
