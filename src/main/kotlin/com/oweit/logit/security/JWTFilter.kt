@@ -6,6 +6,7 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.interfaces.DecodedJWT
+import com.oweit.logit.database.TokenObject
 import com.oweit.logit.database.UserObject
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -37,9 +38,7 @@ class JWTFilter : Filter {
         val algorithm: Algorithm = Algorithm.HMAC256(AuthenticationConstants.SECRET)
         val verifier: JWTVerifier = JWT.require(algorithm).withIssuer(AuthenticationConstants.ISSUER).build()
         val decoded: DecodedJWT = verifier.verify(token)
-        println("token")
         if (type == AuthenticationConstants.USER_TYPE_BEARER) {
-            println("Found user token")
             var userId: String? = null
             try {
                 val type = decoded.claims["type"]!!.asString()
@@ -57,7 +56,6 @@ class JWTFilter : Filter {
                 UsernamePasswordAuthenticationToken(currentUser.id, null, authorities)
             SecurityContextHolder.getContext().authentication = authentication;
         } else if (type == AuthenticationConstants.PROGRAMMABLE_TOKEN_TYPE_BEARER) {
-            println("matched")
             var streamId: String? = null
             try {
                 val type = decoded.claims["type"]!!.asString()
@@ -66,16 +64,14 @@ class JWTFilter : Filter {
                     return chain.doFilter(request, response)
                 }
             } catch (e: Exception) {
-                println(e)
                 return chain.doFilter(request, response)
             }
+            val tokenId: String = TokenObject.checkValid(streamId)
             val authorities: Collection<SimpleGrantedAuthority> =
                 arrayListOf(SimpleGrantedAuthority(AuthenticationConstants.PROGRAMMABLE_TOKEN_TYPE))
-            var authentication: UsernamePasswordAuthenticationToken =
+            val authentication: UsernamePasswordAuthenticationToken =
                 UsernamePasswordAuthenticationToken(streamId, null, authorities)
             SecurityContextHolder.getContext().authentication = authentication;
-        } else {
-            println("Didnt match")
         }
         chain.doFilter(request, response)
 
