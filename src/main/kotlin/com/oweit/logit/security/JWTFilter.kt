@@ -70,7 +70,7 @@ class JWTFilter : Filter {
             val authorities: Collection<SimpleGrantedAuthority> =
                 arrayListOf(SimpleGrantedAuthority(AuthenticationConstants.PROGRAMMABLE_TOKEN_TYPE))
             val authentication: UsernamePasswordAuthenticationToken =
-                UsernamePasswordAuthenticationToken(streamId, null, authorities)
+                UsernamePasswordAuthenticationToken(tokenId, null, authorities)
             SecurityContextHolder.getContext().authentication = authentication;
         }
         chain.doFilter(request, response)

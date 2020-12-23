@@ -5,6 +5,7 @@ import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
 import org.bson.Document
 import org.bson.types.ObjectId
+import java.lang.Exception
 
 class TokenObject {
     
@@ -16,8 +17,13 @@ class TokenObject {
             val databaseDocument: Document = Document(databaseMap)
             val client: MongoDatabase = DatabaseConfig.getDatabase()
             val collection: MongoCollection<Document> = client.getCollection("apiTokens")
-            if (collection.find(databaseDocument).count() == 1) {
-                return token
+            val result = collection.find(databaseDocument)
+            if (result.count() == 1) {
+                try {
+                    return result.toList()[0]["_id"].toString()
+                } catch(e: Exception) {
+                    throw TokenExpiredException("Token Expired")
+                }
             }
             throw TokenExpiredException("Token Expired")
         }

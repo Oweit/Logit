@@ -16,6 +16,7 @@ repositories {
 }
 
 dependencies {
+	implementation("com.fasterxml.jackson.core:jackson-databind:2.10.0")
 	implementation("org.mongodb:mongodb-driver-sync:4.1.1")
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-web")
